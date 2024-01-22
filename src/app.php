@@ -14,13 +14,13 @@ $uri = $_SERVER['REQUEST_URI'];
 
 // ----------------- HOMEPAGE ----------------
 if ($uri === '/') {
-    $home = new HomeController();
+    $home = new HomeController($databaseConnection);
     $home->home();
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $recipies = new RecipiesController();
-        $recipies->postRecipies();
-    }
+// if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+//     $recipies = new RecipiesController();
+//     $recipies->postRecipies();
+// }
 
 } elseif ($uri === '/recipies') {
     $recipies = new RecipiesController();
