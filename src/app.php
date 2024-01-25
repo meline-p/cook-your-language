@@ -23,6 +23,6 @@ if ($uri === '/') {
 // }
 
 } elseif ($uri === '/recipies') {
-    $recipies = new RecipiesController();
+    $recipies = new RecipiesController($databaseConnection);
     $recipies->getRecipies();
 }

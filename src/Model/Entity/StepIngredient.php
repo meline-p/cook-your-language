@@ -5,7 +5,7 @@ namespace App\Model\Entity;
 /**
  * Class representing Post entity.
  */
-class Ingredient_Step
+class StepIngredient
 {
     // properties
     public $id;

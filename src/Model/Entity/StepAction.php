@@ -5,7 +5,7 @@ namespace App\Model\Entity;
 /**
  * Class representing Post entity.
  */
-class Step
+class StepAction
 {
     // properties
     public $id;

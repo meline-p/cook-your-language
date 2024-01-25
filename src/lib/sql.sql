@@ -5,9 +5,9 @@ DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS ratings;
 DROP TABLE IF EXISTS favorites_categories;
 DROP TABLE IF EXISTS favorites;
-DROP TABLE IF EXISTS Ingredients_Steps;
+DROP TABLE IF EXISTS Steps_Ingredients;
 DROP TABLE IF EXISTS Recipes_Ingredients;
-DROP TABLE IF EXISTS Steps;
+DROP TABLE IF EXISTS Steps_Actions;
 DROP TABLE IF EXISTS Recipes;
 DROP TABLE IF EXISTS Recipes_Total_Time;
 DROP TABLE IF EXISTS Quantities;
@@ -32,45 +32,45 @@ CREATE TABLE Recipes_Names (
 
 CREATE TABLE recipies_descriptions(
     id INT PRIMARY KEY AUTO_INCREMENT,
-		en VARCHAR(255),
-		fr VARCHAR(255),
-		es VARCHAR(255)
+    en VARCHAR(255) UNIQUE,
+    fr VARCHAR(255) UNIQUE,
+    es VARCHAR(255) UNIQUE
 );
 
 CREATE TABLE recipies_categories(
     id INT PRIMARY KEY AUTO_INCREMENT,
-		en VARCHAR(255),
-		fr VARCHAR(255),
-		es VARCHAR(255)
+    en VARCHAR(255) UNIQUE,
+    fr VARCHAR(255) UNIQUE,
+    es VARCHAR(255) UNIQUE
 );
 
 CREATE TABLE specs(
     id INT PRIMARY KEY AUTO_INCREMENT,
-		en VARCHAR(255),
-		fr VARCHAR(255),
-		es VARCHAR(255)
+    en VARCHAR(255) UNIQUE,
+    fr VARCHAR(255) UNIQUE,
+    es VARCHAR(255) UNIQUE
 );
 
 CREATE TABLE countries(
     id INT PRIMARY KEY AUTO_INCREMENT,
-		flag VARCHAR(255),
-		en VARCHAR(255),
-		fr VARCHAR(255),
-		es VARCHAR(255)
+    flag VARCHAR(255) UNIQUE,
+    en VARCHAR(255) UNIQUE,
+    fr VARCHAR(255) UNIQUE,
+    es VARCHAR(255) UNIQUE
 );
 
 CREATE TABLE seasons(
     id INT PRIMARY KEY AUTO_INCREMENT,
-		en VARCHAR(255),
-		fr VARCHAR(255),
-		es VARCHAR(255)
+    en VARCHAR(255) UNIQUE,
+    fr VARCHAR(255) UNIQUE,
+    es VARCHAR(255) UNIQUE
 );
 
 CREATE TABLE utensils(
     id INT PRIMARY KEY AUTO_INCREMENT,
-		en VARCHAR(255),
-		fr VARCHAR(255),
-		es VARCHAR(255)
+    en VARCHAR(255) UNIQUE,
+    fr VARCHAR(255) UNIQUE,
+    es VARCHAR(255) UNIQUE
 );
 
 CREATE TABLE Actions (
@@ -126,7 +126,7 @@ CREATE TABLE Recipes (
     FOREIGN KEY (season_id) REFERENCES seasons(id)
 );
 
-CREATE TABLE Steps (
+CREATE TABLE Steps_Actions (
     id INT PRIMARY KEY AUTO_INCREMENT,
     recipe_id INT,
     action_id INT,
@@ -134,7 +134,7 @@ CREATE TABLE Steps (
     FOREIGN KEY (action_id) REFERENCES Actions(id)
 );
 
-CREATE TABLE Ingredients_Steps (
+CREATE TABLE Steps_Ingredients (
     step_id INT,
     ingredient_id INT,
     utensil_id INT,
@@ -169,11 +169,11 @@ CREATE TABLE users (
 CREATE TABLE ratings (
     id INT PRIMARY KEY AUTO_INCREMENT,
     recipe_id INT,
-		user_id INT,
+	user_id INT,
     rating INT CHECK(rating >= 1 AND rating <= 5) DEFAULT NULL,
     date_rating TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (recipe_id) REFERENCES recipes(id),
-		FOREIGN KEY (user_id) REFERENCES users(id)
+	FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 CREATE TABLE favorites_categories (

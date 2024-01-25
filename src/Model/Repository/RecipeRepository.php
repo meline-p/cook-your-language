@@ -18,7 +18,7 @@ use ReturnTypeWillChange;
  */
 class RecipeRepository
 {
-    private DatabaseConnection $connection;
+    public DatabaseConnection $connection;
     public $current_time;
 
     /**
@@ -77,153 +77,120 @@ class RecipeRepository
     }
 
 
+    // INSERER UNE RECETTE
 
-    private function createRecipe($data)
+    public function insertData($table, $recipe_lang, $data)
     {
-        // insertion du nom et du temps total de la recette
-        $recipeNameId = $this->insertData('recipes_names', 'fr', $data['recipe']['name']);
-        $recipeTotalTimeId = $this->insertData('recipes_total_time', 'fr', $data['recipe']['total_time']);
+        $insertData = $this->connection->getConnection()->prepare("INSERT INTO $table($recipe_lang) VALUES (:data)");
+        $insertData->execute(['data' => $data]);
 
-        // insertion des ID + nombre de personnes dans recipes
-        $insertRecipe = $this->connection->getConnection()->prepare('INSERT IGNORE INTO recipes(name_id, time_id, number_of_people) VALUES (:name_id, :time_id, :number_of_people)');
+        if ($insertData->rowCount() > 0) {
+            return $this->connection->getConnection()->lastInsertId();
+        } else {
+            return null;
+        }
+    }
+
+    public function insertRecipe(
+        $name_id,
+        $time_id,
+        $number_of_people,
+        $level_id,
+        $description_id,
+        $category_id,
+        $country_id,
+        $season_id,
+        $lactose,
+        $gluten,
+        $vegetarian,
+        $vegan,
+        $spicy,
+    ) {
+        $insertRecipe = $this->connection->getConnection()->prepare(
+            'INSERT INTO recipes(
+                name_id, 
+                time_id, 
+                number_of_people,
+                level_id,
+                description_id,
+                category_id,
+                country_id,
+                season_id,
+                lactose,
+                gluten,
+                vegetarian,
+                vegan,
+                spicy,
+            ) 
+            VALUES (
+                :name_id, 
+                :time_id, 
+                :number_of_people,
+                :level_id,
+                :description_id,
+                :category_id,
+                :country_id,
+                :season_id,
+                :lactose,
+                :gluten,
+                :vegetarian,
+                :vegan,
+                :spicy,
+            )'
+        );
         $insertRecipe->execute([
-            'name_id' => $recipeNameId,
-            'time_id' => $recipeTotalTimeId,
-            'number_of_people' => $data['recipe']['number_of_people']
+            'name_id' => $name_id,
+            'time_id' => $time_id,
+            'number_of_people' => $number_of_people,
+            'level_id' => $level_id,
+            'description_id' => $description_id,
+            'category_id' => $category_id,
+            'country_id' => $category_id,
+            'season_id' => $season_id,
+            'lactose' => $lactose,
+            'gluten' => $gluten,
+            'vegetarian' => $vegetarian,
+            'vegan' => $vegan,
+            'spicy' => $spicy,
         ]);
 
-        // récupérer l'ID de la recette créée
-        return $this->connection->getConnection()->lastInsertId();
-    }
-
-    private function insertData($table, $columnName, $data)
-    {
-        $insertData = $this->connection->getConnection()->prepare("INSERT IGNORE INTO $table($columnName) VALUES (:data)");
-        $insertData->execute(['data' => $data]);
-        return $this->connection->getConnection()->lastInsertId();
-    }
-
-    private function getDataById($table, $columns, $conditions, $params)
-    {
-        $query = "SELECT $columns FROM $table WHERE $conditions";
-        $statement = $this->connection->getConnection()->prepare($query);
-        $statement->execute($params);
-        return $statement->fetch();
-    }
-
-    private function addIngredient($ingredient)
-    {
-        // l'ingrédient existe dans la BDD ?
-        $existingIngredient = $this->getDataById('ingredients', 'id', 'fr = :fr', ['fr' => $ingredient]);
-        if ($existingIngredient === false) {
-            $ingredientId = $this->insertData('ingredients', 'fr', $ingredient);
+        if ($insertRecipe->rowCount() > 0) {
+            return $this->connection->getConnection()->lastInsertId();
         } else {
-            $ingredientId = $existingIngredient['id'];
-        }
-
-        return $ingredientId;
-    }
-
-    private function addIngredientsWithQuantities($ingredientsData, $recipeId)
-    {
-        foreach ($ingredientsData as $ingredient) {
-            $ingredient['name'] = preg_replace('/\(([^)]+)\)/', '$1', $ingredient['name']);
-
-            // ID de l'ingrédient
-            $ingredientId = $this->addIngredient($ingredient['name']);
-
-            // si la quantité est null
-            if($ingredient['quantity'] == null) {
-                $ingredient['quantity'] = 0;
-            }
-
-            // la quantité existe dans la BDD ?
-            $existingQuantity = $this->getDataById('quantities', 'id', 'fr = :fr', ['fr' => $ingredient['quantity']]);
-            if ($existingQuantity === false) {
-                $quantityId = $this->insertData('quantities', 'fr', $ingredient['quantity']);
-            } else {
-                $quantityId = $existingQuantity['id'];
-            }
-
-            // Insérer les ID dans la table recipes_ingredients
-            $insertIngredientsQuantities = $this->connection->getConnection()->prepare('INSERT INTO recipes_ingredients(recipe_id, ingredient_id, quantity_id) VALUES (:recipe_id, :ingredient_id, :quantity_id)');
-            $insertIngredientsQuantities->execute([
-                'recipe_id' => $recipeId,
-                'ingredient_id' => $ingredientId,
-                'quantity_id' => $quantityId
-            ]);
-
+            return null;
         }
     }
 
-    private function addIngredientStep($ingredientData, $stepId)
+    public function insertRecipeIngredient($recipe_id, $ingredient_id, $quantity_id)
     {
-        if (is_array($ingredientData)) {
+        $insertIngredientsQuantities = $this->connection->getConnection()->prepare('INSERT INTO recipes_ingredients(recipe_id, ingredient_id, quantity_id) VALUES (:recipe_id, :ingredient_id, :quantity_id)');
+        $insertIngredientsQuantities->execute([
+            'recipe_id' => $recipe_id,
+            'ingredient_id' => $ingredient_id,
+            'quantity_id' => $quantity_id
+        ]);
+    }
 
-            // Pour chaque ingrédient
-            foreach ($ingredientData as $ingredient) {
-
-                $ingredient = preg_replace('/\(([^)]+)\)/', '$1', $ingredient);
-
-                // ID de l'ingrédient
-                $ingredientId = $this->addIngredient($ingredient['name']);
-
-                // Associer l'ingrédient à l'étape
-                $insertIngredientsSteps = $this->connection->getConnection()->prepare('INSERT INTO ingredients_steps(step_id, ingredient_id) VALUES (:step_id, :ingredient_id)');
-                $insertIngredientsSteps->execute([
-                    'step_id' => $stepId,
-                    'ingredient_id' => $ingredientId,
-                ]);
-            }
-        } elseif ($ingredientData != null) {
-            // Pour une seule ingrédient
-
-            $ingredient = preg_replace('/\(([^)]+)\)/', '$1', $ingredientData);
-            // ID de l'ingrédient
-            $ingredientId = $this->addIngredient($ingredient['name']);
-
-            // Associer l'ingrédient à l'étape
-            $insertIngredientsSteps = $this->connection->getConnection()->prepare('INSERT INTO ingredients_steps(step_id, ingredient_id) VALUES (:step_id, :ingredient_id)');
-            $insertIngredientsSteps->execute([
-                'step_id' => $stepId,
-                'ingredient_id' => $ingredientId,
-            ]);
+    public function insertStepAction($recipe_id, $action_id)
+    {
+        $insertSteps = $this->connection->getConnection()->prepare('INSERT INTO steps_actions(recipe_id, action_id) VALUES (:recipe_id, :action_id)');
+        $insertSteps->execute([
+            'recipe_id' => $recipe_id,
+            'action_id' => $action_id,
+        ]);
+        if ($insertSteps->rowCount() > 0) {
+            return $this->connection->getConnection()->lastInsertId();
+        } else {
+            return null;
         }
     }
 
-    private function addSteps($stepsData, $recipeId)
+    public function insertStepIngredient($step_id, $ingredient_id)
     {
-        foreach ($stepsData as $step) {
-            $step['action'] = preg_replace('/\(([^)]+)\)/', '$1', $step['action']);
-
-            // l'action existe dans la BDD ?
-            $existingAction = $this->getDataById('actions', 'id', 'fr = :fr', $step['action']);
-            if ($existingAction === false) {
-                $actionId = $this->insertData('actions', 'fr', $step['action']);
-            } else {
-                $actionId = $existingAction['id'];
-            }
-
-            // Insérer l'étape
-            $insertSteps = $this->connection->getConnection()->prepare('INSERT INTO steps(recipe_id, action_id) VALUES (:recipe_id, :action_id)');
-            $insertSteps->execute([
-                'recipe_id' => $recipeId,
-                'action_id' => $actionId,
-            ]);
-            $stepId = $this->connection->getConnection()->lastInsertId();
-
-            // Traiter les ingrédients
-            $this->addIngredientStep($step['ingredient'], $stepId);
-
-        }
-    }
-
-    public function addRecipe($data)
-    {
-        $recipeId = $this->createRecipe($data);
-
-        $this->addIngredientsWithQuantities($data['recipe']['ingredients'], $recipeId);
-
-        $this->addSteps($data['recipe']['steps'], $recipeId);
+        $insertIngredientsSteps = $this->connection->getConnection()->prepare('INSERT INTO steps_ingredients_(step_id, ingredient_id) VALUES (:step_id, :ingredient_id)');
+        $insertIngredientsSteps->execute([
+            'step_id' => $step_id,
+            'ingredient_id' => $ingredient_id,
+        ]);
     }
 }
