@@ -2,7 +2,7 @@
 
 use App\lib\DatabaseConnection;
 use App\controllers\HomeController;
-use App\controllers\RecipiesController;
+use App\controllers\RecipesController;
 
 session_start();
 
@@ -18,11 +18,18 @@ if ($uri === '/') {
     $home->home();
 
 // if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-//     $recipies = new RecipiesController();
-//     $recipies->postRecipies();
+//     $recipes = new RecipesController();
+//     $recipes->postRecipes();
 // }
 
-} elseif ($uri === '/recipies') {
-    $recipies = new RecipiesController($databaseConnection);
-    $recipies->getRecipies();
+} elseif ($uri === '/recipes') {
+    $recipes = new RecipesController($databaseConnection);
+    $recipes->getRecipes();
+
+} elseif ($uri === '/add_recipe') {
+    $recipes = new RecipesController($databaseConnection);
+    $recipes->getAddRecipe();
+} elseif ($uri === '/post_add_recipe') {
+    $recipes = new RecipesController($databaseConnection);
+    $recipes->postAddRecipe($_POST);
 }

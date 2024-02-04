@@ -76,8 +76,41 @@ class RecipeRepository
         return $row['nb'];
     }
 
+    public function getRecipiesName()
+    {
+        $statement = $this->connection->getConnection()->prepare(
+            "SELECT rn.* FROM recipes r
+            INNER JOIN recipes_names rn ON rn.id = r.name_id
+            "
+        );
 
-    // INSERER UNE RECETTE
+        $statement->execute();
+
+        $rows =  $statement->fetchAll();
+        $recipes = array_map(function ($row) {
+            $recipe = new RecipeName();
+            $recipe->fromSql($row);
+            return $recipe;
+        }, $rows);
+
+        return $recipes;
+
+    }
+
+    public function exist($table, $recipe_lang, $data)
+    {
+        $existingData = $this->connection->getConnection()->prepare("SELECT id FROM $table WHERE $recipe_lang = :data");
+        $existingData->execute(['data' => $data]);
+        $result = $existingData->fetch();
+
+        if($result) {
+            return $result['id'];
+        } else {
+            return $this->insertData($table, $recipe_lang, $data);
+        }
+    }
+
+    // INSERER
 
     public function insertData($table, $recipe_lang, $data)
     {
@@ -120,7 +153,7 @@ class RecipeRepository
                 gluten,
                 vegetarian,
                 vegan,
-                spicy,
+                spicy
             ) 
             VALUES (
                 :name_id, 
@@ -135,7 +168,7 @@ class RecipeRepository
                 :gluten,
                 :vegetarian,
                 :vegan,
-                :spicy,
+                :spicy
             )'
         );
         $insertRecipe->execute([
@@ -145,7 +178,7 @@ class RecipeRepository
             'level_id' => $level_id,
             'description_id' => $description_id,
             'category_id' => $category_id,
-            'country_id' => $category_id,
+            'country_id' => $country_id,
             'season_id' => $season_id,
             'lactose' => $lactose,
             'gluten' => $gluten,
@@ -187,7 +220,7 @@ class RecipeRepository
 
     public function insertStepIngredient($step_id, $ingredient_id)
     {
-        $insertIngredientsSteps = $this->connection->getConnection()->prepare('INSERT INTO steps_ingredients_(step_id, ingredient_id) VALUES (:step_id, :ingredient_id)');
+        $insertIngredientsSteps = $this->connection->getConnection()->prepare('INSERT INTO steps_ingredients(step_id, ingredient_id) VALUES (:step_id, :ingredient_id)');
         $insertIngredientsSteps->execute([
             'step_id' => $step_id,
             'ingredient_id' => $ingredient_id,
